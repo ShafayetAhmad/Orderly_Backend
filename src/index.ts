@@ -3,7 +3,7 @@ import { Application, Request, Response } from "express";
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import productsRouter from "./Product.routes";
+import productsRouter from "./Modules/Product/Product.routes";
 
 dotenv.config();
 
