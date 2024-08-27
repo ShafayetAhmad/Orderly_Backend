@@ -29,6 +29,13 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello World");
 });
 
+app.get("/*", (req: Request, res: Response) => {
+  res.status(404).send({
+    success: false,
+    message: "Route not found",
+  });
+});
+
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
