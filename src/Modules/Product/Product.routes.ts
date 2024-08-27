@@ -15,6 +15,7 @@ productsRouter.post("/", async (req: Request, res: Response) => {
       data: productToSave,
     });
   } catch (err) {
+    console.error("Failed to create product:", err); 
     res.status(400).json({
       success: false,
       message: "Failed to create product",
@@ -36,8 +37,10 @@ productsRouter.get("/", async (req: Request, res: Response) => {
         ],
       });
 
-      if (products) {
+      if (products.length > 0) {
         message = `Products matching search term '${searchTerm}' fetched successfully!`;
+      } else {
+        message = `No products found matching search term '${searchTerm}'.`;
       }
     } else {
       products = await ProductModel.find();
@@ -49,6 +52,7 @@ productsRouter.get("/", async (req: Request, res: Response) => {
       data: products,
     });
   } catch (err) {
+    console.error("Failed to fetch products:", err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch products",
@@ -74,6 +78,7 @@ productsRouter.get("/:productId", async (req: Request, res: Response) => {
       data: product,
     });
   } catch (err) {
+    console.error("Failed to fetch product:", err); 
     res.status(500).json({
       success: false,
       message: "Failed to fetch product",
@@ -85,8 +90,15 @@ productsRouter.get("/:productId", async (req: Request, res: Response) => {
 productsRouter.put("/:productId", async (req: Request, res: Response) => {
   try {
     const { productId } = req.params;
-    const product = await ProductModel.findById(productId);
-    if (!product) {
+    const updatedData = productSchema.parse(req.body);
+
+    const updatedProduct = await ProductModel.findByIdAndUpdate(
+      productId,
+      updatedData,
+      { new: true } 
+    );
+
+    if (!updatedProduct) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
@@ -96,12 +108,13 @@ productsRouter.put("/:productId", async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "Product updated successfully!",
-      data: product,
+      data: updatedProduct,
     });
   } catch (err) {
+    console.error("Failed to update product:", err);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch product",
+      message: "Failed to update product",
       error: err,
     });
   }
@@ -122,9 +135,10 @@ productsRouter.delete("/:productId", async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "Product deleted successfully!",
-      data: data,
+      data: null,
     });
   } catch (err) {
+    console.error("Failed to delete product:", err);
     res.status(500).json({
       success: false,
       message: "Failed to delete product",
