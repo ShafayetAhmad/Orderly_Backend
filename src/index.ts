@@ -4,6 +4,7 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import productsRouter from "./Modules/Product/Product.routes";
+import orderRoutes from "./Modules/Order/Order.routes";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ async function main() {
 }
 
 app.use("/api/products", productsRouter);
+app.use("/api/orders", orderRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World");
