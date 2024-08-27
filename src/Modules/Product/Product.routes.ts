@@ -25,10 +25,27 @@ productsRouter.post("/", async (req: Request, res: Response) => {
 
 productsRouter.get("/", async (req: Request, res: Response) => {
   try {
-    const products = await ProductModel.find();
+    const { searchTerm } = req.query;
+    let products, message;
+    if (searchTerm) {
+      products = await ProductModel.find({
+        $or: [
+          { name: { $regex: searchTerm, $options: "i" } },
+          { description: { $regex: searchTerm, $options: "i" } },
+          { tags: { $regex: searchTerm, $options: "i" } },
+        ],
+      });
+
+      if (products) {
+        message = `Products matching search term '${searchTerm}' fetched successfully!`;
+      }
+    } else {
+      products = await ProductModel.find();
+      message = "Products fetched successfully!";
+    }
     res.status(200).json({
       success: true,
-      message: "Products fetched successfully!",
+      message: message,
       data: products,
     });
   } catch (err) {
@@ -51,7 +68,6 @@ productsRouter.get("/:productId", async (req: Request, res: Response) => {
       });
     }
 
-    // Respond with the product data
     res.status(200).json({
       success: true,
       message: "Product fetched successfully!",
@@ -61,6 +77,57 @@ productsRouter.get("/:productId", async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch product",
+      error: err,
+    });
+  }
+});
+
+productsRouter.put("/:productId", async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully!",
+      data: product,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch product",
+      error: err,
+    });
+  }
+});
+
+productsRouter.delete("/:productId", async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const product = await ProductModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    const data = await ProductModel.deleteOne({ _id: productId });
+
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully!",
+      data: data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete product",
       error: err,
     });
   }
